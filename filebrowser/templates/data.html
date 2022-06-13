@@ -1,0 +1,34 @@
+{% if folders_data != [] %}
+<h2>Folders</h2>
+<div>
+    {% for folder, folder_date in folders_data %}
+    <div role="button" tabindex="0" id="file" draggable="true" data-dir="true" aria-label="{{ folder }}" class="item">
+        <div><i class="material-icons">folder</i></div>
+        <div>
+            <p class="name">{{ folder }}</p>
+            <p data-order="-1" class="size">—</p>
+            <p class="modified">{{ folder_date }} ago</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% if files_data != []%}
+<h2>Files</h2>
+<div>
+    {% for file, file_size, file_date in files_data %}
+    <div role="button" tabindex="0" id="file" draggable="true" aria-label="{{ file }}" class="file item">
+        <div><i class="material-icons">insert_drive_file</i></div>
+        <div>
+            <p class="name">{{ file }}</p>
+            <p data-order="36 B" class="size">{{ file_size }}</p>
+            <p class="modified">{{ file_date }} ago</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if files_data == [] and folders_data == [] %}
+<div><h2 class="message" style="font-size: 2em;margin: 1em auto;"><i class="material-icons">sentiment_dissatisfied</i><span>It feels lonely here...</span></h2></div>
+{% endif %}
