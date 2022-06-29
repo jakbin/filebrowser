@@ -61,20 +61,18 @@ $(document).ready(function(){
     $(document).on("click", "#info", function(e){
         $('#info-modal').show();
         $('.overlay').show();
-        $.ajax({
-            url : "/info",
-            type : "GET",
-            success : function(data){
-                $('#info-data').append('<p class="break-word"><strong>Display Name:</strong> '+data.foldername+'</p>'+
-                    '<p><strong>Last Modified:</strong> '+data.lastmd+'</p><p><strong>Number of files:</strong> '+data.file+'</p>'+
-                    '<p><strong>Number of directories:</strong> '+data.folder+'</p>')
-            }
-        });
-    });
+        if ($('#info-data').html() == '') {
+            $.ajax({
+                url : "/info",
+                type : "GET",
+                success : function(data){
+                    $('#info-data').append('<p class="break-word"><strong>Display Name:</strong> '+data.foldername+'</p>'+
+                        '<p><strong>Last Modified:</strong> '+data.lastmd+'</p><p><strong>Number of files:</strong> '+data.file+'</p>'+
+                        '<p><strong>Number of directories:</strong> '+data.folder+'</p>')
+                }
 
-    $(document).on("click", "#ok", function(e){
-        $('#info-modal').hide();
-        $('.overlay').hide();
+            });
+        }
     });
 
     $(document).on("click", ".overlay", function(e){
@@ -87,6 +85,7 @@ $(document).ready(function(){
       $("#download-modal").hide();
       $("#upload-modal").hide();
       $("#copy-modal").hide();
+      $('#info-modal').hide();
       $('.overlay').hide();
     });
 
