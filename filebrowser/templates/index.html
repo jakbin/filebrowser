@@ -177,13 +177,6 @@
             </div>
         </div>
 
-        <input type="hidden" id="folder-names" value="">
-        <input type="hidden" id="select" value="">
-        <input type="hidden" id="selected-item" value="">
-        <input type="hidden" id="multiple-selection" value="">
-        <input type="hidden" id="folder-list-select" value="">
-        <input type="hidden" id="folder-list-name" value="">
-
         <script src="../static/js/main.js"></script>
         <script type="text/javascript">
             
@@ -204,43 +197,38 @@
                             console.log('Single Click'); //perform single-click action
 
                             if ($this.attr("aria-selected") == "true"){
-
                                 $("#dropdown").find(".action:lt(4)").remove();
                                 $(".counter").remove();
                                 $this.removeAttr("aria-selected");
-                                $("#select").val("");
-                                $("#selected-item").val("");
-
+                                sessionStorage.setItem("select","");
+                                sessionStorage.setItem("selected-item", "");
                             }else{
                                 $this.attr("aria-selected", true);
 
-                                if ($("#select").val() == "true"){
-                                    $('[aria-label="' + $("#selected-item").val() + '"]').removeAttr("aria-selected");
+                                if (sessionStorage.getItem("select") == "true"){
+                                    $('[aria-label="' + sessionStorage.getItem("selected-item") + '"]').removeAttr("aria-selected");
                                 }else{
                                     $("#dropdown").prepend(action);
                                     $("#download-button").append(counter);
-                                    $("#select").val("true");
+                                    sessionStorage.setItem("select","true");
                                 }
-                                $("#selected-item").val($this.attr("aria-label"));
+                                sessionStorage.setItem("selected-item",$this.attr("aria-label"));
                             }
                             clicks = 0;  //after action performed, reset counter
                         }, DELAY);
 
                     } else {
-
                         clearTimeout(timer);  //prevent single-click action
                         console.log('Double Click');  //perform double-click action
 
-                        var a = $this.hasClass("file");
-                        if (a){
+                        var isfile = $this.hasClass("file");
+                        if (isfile){
                             console.log("it is file");
                         }else{
-
                             var name = $this.attr('aria-label');
                             var host = "http://127.0.0.1:5000/";
                             var url = host + name;
-                            var folder = $("#folder-names").val();
-                            // console.log(name);
+                            var folder = sessionStorage.getItem("folder-names");
                             $.ajax({
                                 url : "/load-data",
                                 type : "POST",
@@ -250,8 +238,8 @@
                                 complete : function(data){
                                     // window.history.pushState({}, name, url);
                                     $("#load-data").empty().append(data.responseText);
-                                    $("#folder-names").val($("#folder-names").val() + name + "/");
-                                    $("#links").append('<span class="chevron"><i class="material-icons">keyboard_arrow_right</i></span><a id="link" role="button" href="'+ $("#folder-names").val() +'" class="router-link-active">'+ $this.attr('aria-label') +'</a>');
+                                    sessionStorage.setItem("folder-names",sessionStorage.getItem("folder-names") + name + "/");
+                                    $("#links").append('<span class="chevron"><i class="material-icons">keyboard_arrow_right</i></span><a id="link" role="button" href="'+ sessionStorage.getItem("folder-names") +'" class="router-link-active">'+ $this.attr('aria-label') +'</a>');
                                 }
                             });
                         }

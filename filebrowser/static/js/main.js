@@ -1,3 +1,13 @@
+window.onbeforeunload = function(){
+    sessionStorage.clear();
+}
+sessionStorage.setItem("folder-names","");
+sessionStorage.setItem("select","");
+sessionStorage.setItem("selected-item","");
+sessionStorage.setItem("multiple-selection","");
+sessionStorage.setItem("folder-list-select","");
+sessionStorage.setItem("folder-list-name","");
+
 $(document).ready(function(){
 
     function loaddata(folder, name){
@@ -19,15 +29,15 @@ $(document).ready(function(){
       });
     }
 
-    var folder = $("#folder-names").val();
+    var folder = sessionStorage.getItem("folder-names");
     loaddata(folder, '');
 
     $(document).on("click","#home, #myfiles", function(e){
         e.preventDefault();
 
-        if ($("#folder-names").val() != ""){
+        if (sessionStorage.getItem("folder-names") != ""){
             loaddata("", "");
-            $("#folder-names").val("");
+            sessionStorage.setItem("folder-names","");
             $("#links").children().remove();
         }
     });
@@ -35,12 +45,12 @@ $(document).ready(function(){
     $(document).on("click","#link", function(e){
         e.preventDefault();
 
-        if ($(this).attr("href") != $("#folder-names").val()){
+        if ($(this).attr("href") != sessionStorage.getItem("folder-names")){
             loaddata($(this).attr("href"), "");
             $(this).nextAll().remove();
-            $("#folder-names").val($(this).attr("href"));
+            sessionStorage.setItem("folder-names",$(this).attr("href"));
 
-            if ($("#select").val() == "true"){
+            if (sessionStorage.getItem("select") == "true"){
                 $("#dropdown").find(".action:lt(4)").remove();
                 $(".counter").remove();
             }
@@ -107,8 +117,9 @@ $(document).ready(function(){
             $('#modal1 div').children('button').eq('1').attr('id', 'file-button');
         }else{
             $('#modal1 div h2').html('Rename');
-            $('#modal1 .card-content p').first().html('Insert a new name for '+'<code>'+$("#selected-item").val()+'</code>');
-            $('#item-name').val($("#selected-item").val());
+            // $('#modal1 .card-content p').first().html('Insert a new name for '+'<code>'+$("#selected-item").val()+'</code>');
+            $('#modal1 .card-content p').first().html('Insert a new name for '+'<code>'+sessionStorage.getItem("selected-item")+'</code>');
+            $('#item-name').val(sessionStorage.getItem("selected-item"));
             $('#modal1 div').children('button').eq('1').html('Rename');
             $('#modal1 div').children('button').eq('1').attr('id', 'rename');
         }
@@ -125,7 +136,7 @@ $(document).ready(function(){
         e.preventDefault();
 
         var name = $('#item-name').val();
-        var folder = $("#folder-names").val();
+        var folder = sessionStorage.getItem("folder-names");
 
         if (name == "") {
             // $('#error-message').show();
@@ -134,7 +145,7 @@ $(document).ready(function(){
 
         }else {
 
-            $.ajax({
+          $.ajax({
             url : "/new-folder",
             type : "POST",
             data : JSON.stringify({name : name, folder : folder}),
@@ -157,15 +168,13 @@ $(document).ready(function(){
                 }
             }
           });
-
         }
-
     });
 
     $(document).on("click","#file-button", function(e){
 
         var name = $('#item-name').val();
-        var folder = $("#folder-names").val();
+        var folder = sessionStorage.getItem("folder-names");
 
         if (name == "") {
             // $('#error-message').show();
@@ -173,7 +182,7 @@ $(document).ready(function(){
             console.log("empty field")
         }else {
 
-            $.ajax({
+          $.ajax({
             url : "/new-file",
             type : "POST",
             data : JSON.stringify({name : name, folder : folder}),
@@ -196,9 +205,7 @@ $(document).ready(function(){
                 }
             }
           });
-
         }
-
     });
 
     $(document).on("click", "#delete-button", function(e){
@@ -208,12 +215,12 @@ $(document).ready(function(){
 
     $(document).on("click","#delete", function(e){
     
-        if ($("#select").val() == "true"){
+        if (sessionStorage.getItem("select") == "true"){
 
-            var name = $("#selected-item").val();
-            var folder = $("#folder-names").val();
+            var name = sessionStorage.getItem("selected-item");
+            var folder = sessionStorage.getItem("folder-names");
         
-            $.ajax({
+          $.ajax({
             url : "/delete",
             type : "POST",
             data : JSON.stringify({name : name, folder : folder}),
@@ -228,7 +235,7 @@ $(document).ready(function(){
                     $(".counter").remove();
                     $('.overlay').hide();
                     $('#select').val('');
-                    $("#selected-item").val('');
+                    sessionStorage.setItem("selected-item", "");
                     // $('#error-message').html("Data has been Saved  !")
                     console.log("file deleted")
                 }else if (data.responseText != 1 && data.status == 200){
@@ -244,13 +251,13 @@ $(document).ready(function(){
     
     $(document).on("click","#rename", function(e){
     
-        if ($("#select").val() == "true"){
+        if (sessionStorage.getItem("select") == "true"){
 
-            var name = $("#selected-item").val();
-            var folder = $("#folder-names").val();
+            var name = sessionStorage.getItem("selected-item");
+            var folder = sessionStorage.getItem("folder-names");
             var dst = $("#item-name").val();
         
-            $.ajax({
+          $.ajax({
             url : "/rename",
             type : "POST",
             data : JSON.stringify({name : name, folder : folder, dst: dst}),
@@ -260,13 +267,12 @@ $(document).ready(function(){
                 if (data.responseText == 1){
                     loaddata(folder, "");
                     $('#dst-name').val('');
-                    // $('#message').show();
                     $("#modal1").hide();
                     $("#dropdown").find(".action:lt(4)").remove();
                     $(".counter").remove();
                     $('.overlay').hide();
                     $('#select').val('');
-                    $("#selected-item").val('');
+                    sessionStorage.setItem("selected-item", "");
                     // $('#error-message').html("Data has been Saved  !")
                     console.log("file renamed")
                 }else if (data.responseText != 1 && data.status == 200){
@@ -281,11 +287,10 @@ $(document).ready(function(){
     });
 
     $(document).on("click", "#download-button", function(e){
-        if ($("#select").val() == 'true'){
-        var name = $("#selected-item").val();
-        var folder = $("#folder-names").val();
-
-        location.href = "/download/"+folder+ name
+        if (sessionStorage.getItem("select") == "true"){
+            var name = sessionStorage.getItem("selected-item");
+            var folder = sessionStorage.getItem("folder-names");
+            location.href = "/download/"+folder+ name
         }else{
             console.log('no item selected')
         }
@@ -302,12 +307,12 @@ $(document).ready(function(){
     });
 
     $("#file-upload").change(function(e){
-        var folder = $("#folder-names").val();
+        var folder = sessionStorage.getItem("folder-names");
         var form_data = new FormData();
         form_data.append("file1", $("#file-upload")[0].files[0]);
         form_data.append('folder', folder);
 
-        $.ajax({
+      $.ajax({
             url: "/upload",
             type: "POST",
             data: form_data,
@@ -344,7 +349,7 @@ $(document).ready(function(){
         e.stopPropagation();
         e.preventDefault();
 
-        var folder = $("#folder-names").val();
+        var folder = sessionStorage.getItem("folder-names");
         var form_data = new FormData();
         form_data.append("file1", e.dataTransfer.files[0]);
         form_data.append('folder', folder);
@@ -395,7 +400,7 @@ $(document).ready(function(){
     $(document).on("click", "#copy-button, #move-button", function(e){
         $("#copy-modal").show();
         $('.overlay').show();
-        var folder = $("#folder-names").val();
+        var folder = sessionStorage.getItem("folder-names");
         folderlist(folder, "");
         if ($(this).is('#move-button')){
             $('#copy-modal div h2').html('Move');
@@ -423,29 +428,24 @@ $(document).ready(function(){
                 console.log('Single Click folder'); //perform single-click action
                 if ($this.attr("aria-selected") == "true"){
                     $this.removeAttr("aria-selected");
-                    $("#folder-list-select").val('');
-                    $('#folder-list-name').val('');
+                    sessionStorage.setItem("folder-list-select", "");
+                    sessionStorage.setItem("folder-list-name", "");
                 }else{
                     $this.attr("aria-selected", true);
-                    if ($("#folder-list-select").val() == "true"){
-
-                        $('[aria-label="' + $("#folder-list-name").val() + '"]').removeAttr("aria-selected");
+                    if (sessionStorage.getItem("folder-list-select") == "true"){
+                        $('[aria-label="' + sessionStorage.getItem("folder-list-name") + '"]').removeAttr("aria-selected");
                     }else{
-                        $("#folder-list-select").val("true");
+                       sessionStorage.setItem("folder-list-select", "true");
                     }
-                    $('#folder-list-name').val($this.attr("aria-label"));
+                    sessionStorage.setItem("folder-list-name",$this.attr("aria-label"));
                 }
-
                 clicks = 0;  //after action performed, reset counter
-
             }, DELAY);
 
         } else {
 
             clearTimeout(timer);  //prevent single-click action
-
             console.log('Double Click folder');  //perform double-click action
-
             var folderName = $this.attr("aria-label");
 
             if (folderName == '..'){
@@ -477,10 +477,10 @@ $(document).ready(function(){
     });
 
     $(document).on("click", "#copy-item, #move-item", function(e){
-        var source = $("#folder-names").val();
+        var source = sessionStorage.getItem("folder-names");
         var fodestination = $('code').html();
-        var destination = $('#folder-list-name').val();
-        var itemName = $('#selected-item').val();
+        var destination = sessionStorage.getItem("folder-list-name");
+        var destination = sessionStorage.getItem("selected-item");
         if ($(this).is('#move-item')){
             var url = "/moveItem";
         }else{
@@ -505,13 +505,12 @@ $(document).ready(function(){
                     $("#dropdown").find(".action:lt(4)").remove();
                     $(".counter").remove();
                     $('#select').val('');
-                    $("#selected-item").val('');
+                    sessionStorage.setItem("selected-item", "");
                 }else if (data.status == 500){
                     console.log("Internal Server Error")
                 }
             }
         });
-
     });
-
+    
 });
