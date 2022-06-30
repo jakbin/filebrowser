@@ -10,6 +10,13 @@ sessionStorage.setItem("folder-list-name","");
 
 $(document).ready(function(){
 
+    function unselecte(){
+        sessionStorage.setItem("selected-item", "");
+        sessionStorage.setItem("select", "")
+        $("#dropdown").find(".action:lt(4)").remove();
+        $(".counter").remove();
+    }
+
     function loaddata(folder, name){
         $("#loading").show();
       $.ajax({
@@ -34,6 +41,9 @@ $(document).ready(function(){
 
     $(document).on("click","#home, #myfiles", function(e){
         e.preventDefault();
+        if (sessionStorage.getItem("select") == "true"){
+            unselecte()
+        }
 
         if (sessionStorage.getItem("folder-names") != ""){
             loaddata("", "");
@@ -46,6 +56,9 @@ $(document).ready(function(){
         e.preventDefault();
 
         if ($(this).attr("href") != sessionStorage.getItem("folder-names")){
+            if (sessionStorage.getItem("select") == "true"){
+                unselecte()
+            }
             loaddata($(this).attr("href"), "");
             $(this).nextAll().remove();
             sessionStorage.setItem("folder-names",$(this).attr("href"));
@@ -100,6 +113,9 @@ $(document).ready(function(){
     });
 
     $(document).on("click", "#new-folder, #new-file, #rename-button", function(e){
+        if (sessionStorage.getItem("select") == "true"){
+            unselecte()
+        }
         $('#item-name').val('');
         $('#modal1').show();
         $('.overlay').show();
@@ -117,7 +133,6 @@ $(document).ready(function(){
             $('#modal1 div').children('button').eq('1').attr('id', 'file-button');
         }else{
             $('#modal1 div h2').html('Rename');
-            // $('#modal1 .card-content p').first().html('Insert a new name for '+'<code>'+$("#selected-item").val()+'</code>');
             $('#modal1 .card-content p').first().html('Insert a new name for '+'<code>'+sessionStorage.getItem("selected-item")+'</code>');
             $('#item-name').val(sessionStorage.getItem("selected-item"));
             $('#modal1 div').children('button').eq('1').html('Rename');
@@ -231,11 +246,8 @@ $(document).ready(function(){
                     loaddata(folder, "");
                     // $('#message').show();
                     $("#delete-modal").hide();
-                    $("#dropdown").find(".action:lt(4)").remove();
-                    $(".counter").remove();
                     $('.overlay').hide();
-                    $('#select').val('');
-                    sessionStorage.setItem("selected-item", "");
+                    unselecte()
                     // $('#error-message').html("Data has been Saved  !")
                     console.log("file deleted")
                 }else if (data.responseText != 1 && data.status == 200){
@@ -268,11 +280,8 @@ $(document).ready(function(){
                     loaddata(folder, "");
                     $('#dst-name').val('');
                     $("#modal1").hide();
-                    $("#dropdown").find(".action:lt(4)").remove();
-                    $(".counter").remove();
                     $('.overlay').hide();
-                    $('#select').val('');
-                    sessionStorage.setItem("selected-item", "");
+                    unselecte()
                     // $('#error-message').html("Data has been Saved  !")
                     console.log("file renamed")
                 }else if (data.responseText != 1 && data.status == 200){
@@ -306,13 +315,8 @@ $(document).ready(function(){
         $("#file-upload").trigger('click');
     });
 
-    $("#file-upload").change(function(e){
-        var folder = sessionStorage.getItem("folder-names");
-        var form_data = new FormData();
-        form_data.append("file1", $("#file-upload")[0].files[0]);
-        form_data.append('folder', folder);
-
-      $.ajax({
+    function uoload(form_data){
+        $.ajax({
             url: "/upload",
             type: "POST",
             data: form_data,
@@ -332,6 +336,15 @@ $(document).ready(function(){
                 }
             }
         });
+    }
+
+    $("#file-upload").change(function(e){
+        var folder = sessionStorage.getItem("folder-names");
+        var form_data = new FormData();
+        form_data.append("file1", $("#file-upload")[0].files[0]);
+        form_data.append('folder', folder);
+
+        uoload(form_data);
     });
 
     // upload file with drag and drop
@@ -354,26 +367,7 @@ $(document).ready(function(){
         form_data.append("file1", e.dataTransfer.files[0]);
         form_data.append('folder', folder);
 
-        $.ajax({
-            url: "/upload",
-            type: "POST",
-            data: form_data,
-            dataType: "json",
-            contentType: false,
-            processData: false,
-            success: function(data){
-                if (data == 1){
-                    loaddata(folder, "");
-                    $('.overlay').hide();
-                    $('#upload-modal').hide();
-                    // $('#file-upload').reset();
-                    $('#file-upload').val('');
-                    console.log("file uploaded");
-                }else{
-                    console.log(data);
-                }
-            }
-        });
+        uoload(form_data);
     });
 
     function folderlist(folder, folderName){
@@ -381,7 +375,7 @@ $(document).ready(function(){
         $.ajax({
             url : "/folderlist",
             type : "POST",
-            data : JSON.stringify({foldername : folderName, folder : folder}),
+            data : JSON.stringify({folder : folder, foldername : folderName}),
             dataType : "json",
             contentType : "application/json; charset=utf-8",
             success : function(data){
@@ -402,12 +396,15 @@ $(document).ready(function(){
         $('.overlay').show();
         var folder = sessionStorage.getItem("folder-names");
         folderlist(folder, "");
+        console.log("click on cpmv");
         if ($(this).is('#move-button')){
+            console.log("click on mv");
             $('#copy-modal div h2').html('Move');
             $('#copy-modal .card-content p').first().html('Choose the place to move your files:');
             $('#copy-modal div').children('button').eq('1').html('Move');
             $('#copy-modal div').children('button').eq('1').attr('id', 'move-item');
         }else{
+            console.log("click on cp");
             $('#copy-modal div h2').html('Copy');
             $('#copy-modal .card-content p').first().html('Choose the place to copy your files:');
             $('#copy-modal div').children('button').eq('1').html('Copy');
@@ -447,9 +444,10 @@ $(document).ready(function(){
             clearTimeout(timer);  //prevent single-click action
             console.log('Double Click folder');  //perform double-click action
             var folderName = $this.attr("aria-label");
-
+            var curFolder = sessionStorage.getItem('folder-names');
+            console.log($("#folder-list-code").html(), folderName);
             if (folderName == '..'){
-                    folderlist($("#folder-list-code").html(), folderName);
+                    folderlist(curFolder+$("#folder-list-code").html(), folderName);
                     var fname = $("#folder-list-code").html();
                     var arr = fname.split("/");
                     arr.pop();
@@ -466,7 +464,10 @@ $(document).ready(function(){
                         }
                     }
             }else{
-                folderlist($("#folder-list-code").html(), folderName);
+                console.log(curFolder);
+                console.log($("#folder-list-code").html());
+                console.log(folderName);
+                folderlist(curFolder+$("#folder-list-code").html(),folderName);
                 $("#folder-list-code").html($("#folder-list-code").html() + folderName + "/");
             }
             clicks = 0;  //after action performed, reset counter
@@ -476,14 +477,22 @@ $(document).ready(function(){
         e.preventDefault();  //cancel system double-click event
     });
 
+    $(document).on("click", "#close-folder-list", function(e){
+      $("#copy-modal").hide();
+      $('.overlay').hide();
+      $("code").html('');
+    });
+
     $(document).on("click", "#copy-item, #move-item", function(e){
         var source = sessionStorage.getItem("folder-names");
         var fodestination = $('code').html();
         var destination = sessionStorage.getItem("folder-list-name");
-        var destination = sessionStorage.getItem("selected-item");
+        var itemName = sessionStorage.getItem("selected-item");
         if ($(this).is('#move-item')){
+            console.log("click on mv it");
             var url = "/moveItem";
         }else{
+            console.log("click on cp it");
             var url = "/copyItem"
         }
         $.ajax({
@@ -498,19 +507,19 @@ $(document).ready(function(){
                     $('.overlay').hide();
                     if (url == '/moveItem'){
                         console.log("item moved");
-                        loaddata(source, "");
                     }else{
                         console.log("item copied");
                     }
-                    $("#dropdown").find(".action:lt(4)").remove();
-                    $(".counter").remove();
-                    $('#select').val('');
-                    sessionStorage.setItem("selected-item", "");
+                    loaddata(source, "");
+                    unselecte()
+                    sessionStorage.setItem("folder-list-select", "");
+                    sessionStorage.setItem("folder-list-name", "");
+                    $("code").html('');
                 }else if (data.status == 500){
                     console.log("Internal Server Error")
                 }
             }
         });
     });
-    
+
 });

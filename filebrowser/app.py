@@ -11,7 +11,7 @@ from filebrowser.funcs import get_size, diff, folderCompare
 
 def server(host:str=None, port:int=None, home_path:str=None):
     app = Flask(__name__)
-    app.secret_key = 'super-secret-key'
+    app.secret_key = os.urandom(32)
 
     @app.route("/")
     def home():    
@@ -88,11 +88,11 @@ def server(host:str=None, port:int=None, home_path:str=None):
     def copyItem():
         data = request.get_json()
         source = data['source']
-        destination = data['destination']
         itemName = data['itemName']
+        destination = data['destination']
         fodestination = data['fodestination']
         fullSource = os.path.join(home_path, source, itemName)
-        fullDestination = os.path.join(home_path, fodestination, destination)
+        fullDestination = os.path.join(home_path, source, fodestination, destination)
         try:
             shutil.copy2(fullSource, fullDestination)
             return '1'
@@ -110,7 +110,7 @@ def server(host:str=None, port:int=None, home_path:str=None):
         itemName = data['itemName']
         fodestination = data['fodestination']
         fullSource = os.path.join(home_path, source, itemName)
-        fullDestination = os.path.join(home_path, fodestination, destination)
+        fullDestination = os.path.join(home_path, source, fodestination, destination)
         try:
             shutil.move(fullSource, fullDestination)
             return '1'
@@ -186,12 +186,14 @@ def server(host:str=None, port:int=None, home_path:str=None):
     @app.route("/rename", methods = ['POST'])
     def rename():
         data = request.get_json()
+        print(data)
         name = data['name']
         folder = data['folder']
         dst = data['dst']
         target = os.path.join(home_path, folder, name)
+        fullDestination = os.path.join(home_path, folder, dst)
         try:
-            os.rename(target, dst)
+            os.rename(target, fullDestination)
             return "1"
         except IOError as e:
             return str(e)
