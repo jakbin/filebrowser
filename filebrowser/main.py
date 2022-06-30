@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from filebrowser.app import server
 
-__version__ = "1.0.9"
+__version__ = "1.1.0"
 package_name = "filebrowser"
 
 example_uses = '''example:
