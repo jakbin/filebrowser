@@ -35,8 +35,12 @@ def diff(file):
         return f"{round(minutes[1])} seconds"
 
 def folderCompare(base_path, path):
-    base_path = str(base_path).split('/')
-    path = str(path).split('/')
+    if pl == 'Windows':
+        base_path = str(base_path).split('\\')
+        path = str(path).split('\\')
+    else:
+        base_path = str(base_path).split('/')
+        path = str(path).split('/')
     result = True
     for i in base_path:
         if i in path:
