@@ -114,7 +114,9 @@ $(document).ready(function(){
 
     $(document).on("click", "#new-folder, #new-file, #rename-button", function(e){
         if (sessionStorage.getItem("select") == "true"){
-            unselecte()
+            if ($(this).is('#new-file', '#new-folder')){
+                unselecte()
+            }
         }
         $('#item-name').val('');
         $('#modal1').show();
@@ -395,6 +397,7 @@ $(document).ready(function(){
         $("#copy-modal").show();
         $('.overlay').show();
         var folder = sessionStorage.getItem("folder-names");
+        $("#folder-list-code").html(folder);
         folderlist(folder, "");
         console.log("click on cpmv");
         if ($(this).is('#move-button')){
@@ -445,9 +448,10 @@ $(document).ready(function(){
             console.log('Double Click folder');  //perform double-click action
             var folderName = $this.attr("aria-label");
             var curFolder = sessionStorage.getItem('folder-names');
-            console.log($("#folder-list-code").html(), folderName);
+            var listFolderName = $("#folder-list-code").html();
+            // console.log($("#folder-list-code").html(), folderName);
             if (folderName == '..'){
-                    folderlist(curFolder+$("#folder-list-code").html(), folderName);
+                    folderlist(listFolderName, folderName);
                     var fname = $("#folder-list-code").html();
                     var arr = fname.split("/");
                     arr.pop();
