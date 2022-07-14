@@ -1,6 +1,7 @@
 import os
 import time
 import datetime
+import platform
 
 def get_size(path):
     size = os.path.getsize(path)
@@ -33,6 +34,8 @@ def diff(file):
         return f"{round(minutes[0])} minutes"
     else:
         return f"{round(minutes[1])} seconds"
+
+pl = platform.system()
 
 def folderCompare(base_path, path):
     if pl == 'Windows':
