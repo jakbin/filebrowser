@@ -13,7 +13,7 @@ The single page web file browser that use ajax.
 * Delete Folder and File
 * Rename Folder and File
 * Download File and Folder (folder as zip)
-* File anfd Folder size
+* File and Folder size
 * File Upload
 * Drag and Drop file upload
 * copy File and folder
