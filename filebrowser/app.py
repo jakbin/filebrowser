@@ -220,14 +220,14 @@ def server(host:str=None, port:int=None, home_path:str=None):
                 with ZipFile(f"{foldername}.zip", "w") as zip:
                     for file in file_paths:
                         zip.write(file)
-                return send_from_directory(directory=os.path.dirname(target), filename=f"{foldername}.zip", as_attachment=True)
+                return send_from_directory(directory=os.path.dirname(target), path=f"{foldername}.zip", as_attachment=True)
 
             finally:
                 if os.path.exists(f"{foldername}.zip"):
                     os.remove(f"{foldername}.zip")
         else:
             try:
-                return send_from_directory(directory=os.path.dirname(target), filename=os.path.basename(target), as_attachment=True)
+                return send_from_directory(directory=os.path.dirname(target), path=os.path.basename(target), as_attachment=True)
             except IOError:
                 return "can't download"
         

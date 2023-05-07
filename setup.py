@@ -24,7 +24,7 @@ License
 MIT (see LICENSE file).
 """
 
-from filebrowser.main import __version__
+from filebrowser import __version__
 
 try:
     from setuptools import setup
