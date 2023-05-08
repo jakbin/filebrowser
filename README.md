@@ -38,3 +38,10 @@ filebrowser --host {custom_address} -p {custom_port} -d {folder_path}
 ## To do
 - [ ] Use pure js.
 - [ ] Comment code.
+- [ ] Use socket.
+
+
+### Support my work :-
+
+BTC - bc1qx2p08qtsxxdzj0yfr2cm7yy3g5ydv3mt2753le\
+ETH - 0x40e69DaEC18cD199535b055BDA6582daa5978145
