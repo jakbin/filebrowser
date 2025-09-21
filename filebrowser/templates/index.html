@@ -15,8 +15,24 @@
             #download-modal,
             #upload-modal,
             #copy-modal,
-            #info-modal{
+            #info-modal,
+            #login-modal{
                 display: none;
+            }
+            #login-modal .card-content input { width: 100%; }
+            /* Ensure inline style or base hidden state wins over animations */
+            .card.floating[style*="display: none"],
+            #modal1[style*="display: none"],
+            #delete-modal[style*="display: none"],
+            #download-modal[style*="display: none"],
+            #upload-modal[style*="display: none"],
+            #copy-modal[style*="display: none"],
+            #info-modal[style*="display: none"],
+            #login-modal[style*="display: none"] {
+                display: none !important;
+                opacity: 0 !important;
+                -webkit-animation: none !important;
+                animation: none !important;
             }
         </style>
         <link href="{{ url_for('static', filename='css/file.css')}}" rel="stylesheet">
@@ -165,12 +181,36 @@
                                 <p> Currently navigating on: <code id="folder-list-code"></code></p>
                             </div>
                         </div>
-                        <div class="card-action"><button aria-label="Cancel" title="Cancel" class="button button--flat button--grey" id="close-folder-list">Cancel </button><button aria-label="Copy" title="Copy" class="button button--flat" id="">  </button></div>
+                        <div class="card-action">
+                            <button aria-label="Cancel" title="Cancel" class="button button--flat button--grey" id="close-folder-list">Cancel </button>
+                            <button aria-label="Copy" title="Copy" class="button button--flat" id="">  </button>
+                        </div>
                     </div>
+
                     <div class="card floating" id="info-modal">
                         <div class="card-title"><h2>File information</h2></div>
                         <div class="card-content" id="info-data"></div>
-                        <div class="card-action"><button id="close-btn" aria-label="OK" title="OK" class="button button--flat"> OK </button></div></div>
+                        <div class="card-action">
+                            <button id="close-btn" aria-label="OK" title="OK" class="button button--flat"> OK </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Login Modal -->
+                    <div class="card floating" id="login-modal">
+                        <div class="card-title"><h2>Login</h2></div>
+                        <div class="card-content">
+                            <p>Please login to continue.</p>
+                            <label>Username</label>
+                            <input type="text" id="login-username" class="input input--block" value="admin" />
+                            <label>Password</label>
+                            <input type="password" id="login-password" class="input input--block" />
+                            <p id="login-error" style="color: #c00; display: none;">Invalid credentials</p>
+                        </div>
+                        <div class="card-action">
+                            <button aria-label="Cancel" title="Cancel" id="login-cancel" class="button button--flat button--grey">Cancel</button>
+                            <button aria-label="Login" title="Login" id="login-submit" class="button button--flat">Login</button>
+                        </div>
+                    </div>
                     <div class="overlay" style="display: none;"></div>
                 </div>
             </div>
@@ -180,6 +220,81 @@
         <script type="text/javascript">
             
             $(document).ready(function(){
+
+                // Authentication helpers
+                function showLoginModal() {
+                    $("#login-error").hide();
+                    $("#login-modal").show();
+                    $(".overlay").show();
+                    $("#login-password").val("").focus();
+                }
+
+                function hideLoginModal() {
+                    $("#login-modal").hide();
+                    $(".overlay").hide();
+                }
+
+                function checkAuthStatus() {
+                    return $.getJSON('/auth/status').then(function(res){
+                        if (res.authEnabled && !res.loggedIn) {
+                            showLoginModal();
+                        }
+                        return res;
+                    });
+                }
+
+                function login(username, password) {
+                    return $.ajax({
+                        url: '/auth/login',
+                        method: 'POST',
+                        data: JSON.stringify({ username: username, password: password }),
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8'
+                    });
+                }
+
+                function loaddata(folder, name){
+                    $("#loading").show();
+                    $.ajax({
+                        url : "/load-data",
+                        type : "POST",
+                        data : JSON.stringify({name : name, folder : folder}),
+                        dataType : "json",
+                        contentType : "application/json; charset=utf-8",
+                        complete : function(data){
+                            $("#loading").hide();
+                            if (data.status == 200){
+                                $("#load-data").html(data.responseText);
+                            }else if (data.status == 500){
+                                console.log(data.responseText)
+                            }
+                        }
+                    });
+                }
+
+                // Login modal handlers
+                $(document).on('click', '#login-cancel', function(){ hideLoginModal(); });
+                $(document).on('click', '#login-submit', function(){
+                    var u = $('#login-username').val();
+                    var p = $('#login-password').val();
+                    login(u, p)
+                        .done(function(){ 
+                            hideLoginModal();
+                            var folder = sessionStorage.getItem("folder-names");
+                            loaddata(folder, '');
+                         })
+                        .fail(function(){ $('#login-error').show(); });
+                });
+
+                // Global handler for Unauthorized responses
+                $.ajaxSetup({
+                    statusCode: {
+                        401: function(){ showLoginModal(); }
+                    }
+                });
+
+                // Check on load
+                checkAuthStatus();
 
                 var action = '<button aria-label="Rename" title="Rename" class="action" id="rename-button"><i class="material-icons">mode_edit</i><span>Rename</span></button><button aria-label="Copy file" title="Copy file" class="action" id="copy-button"><i class="material-icons">content_copy</i><span>Copy file</span></button><button aria-label="Move file" title="Move file" class="action" id="move-button"><i class="material-icons">forward</i><span>Move file</span></button><button aria-label="Delete" title="Delete" class="action" id="delete-button"><i class="material-icons">delete</i><span>Delete</span></button>';
                 var counter = '<span class="counter">1</span>';
