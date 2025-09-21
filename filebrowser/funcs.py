@@ -1,7 +1,6 @@
 import os
 import time
 import datetime
-import platform
 
 def get_size(path):
     size = os.path.getsize(path)
@@ -29,27 +28,52 @@ def diff(file):
     elif (today - file_d).days != 0:
         return f"{(today - file_d).days} days"
     elif minutes[0] > 59:
-        return f"{round(minutes[0]/60)} huors"
+        return f"{round(minutes[0]/60)} hours"
     elif minutes[0] != 0:
         return f"{round(minutes[0])} minutes"
     else:
         return f"{round(minutes[1])} seconds"
 
-pl = platform.system()
-
 def folderCompare(base_path, path):
-    if pl == 'Windows':
-        base_path = str(base_path).split('\\')
-        path = str(path).split('\\')
-    else:
-        base_path = str(base_path).split('/')
-        path = str(path).split('/')
-    result = True
-    for i in base_path:
-        if i in path:
-            result = True
-        else:
-            result = False
-            break
-    return result
+    """
+    Securely determine whether `path` is inside `base_path`.
+
+    This function prevents directory traversal by:
+    - Normalizing and resolving paths (resolves symlinks where possible)
+    - Comparing canonical paths using safe common-path checks
+    - Handling Windows and POSIX semantics appropriately
+
+    Returns True if `path` is within `base_path`, else False.
+    """
+    from pathlib import Path
+
+    try:
+        # Base directory should exist; resolve strictly to its canonical path
+        base = Path(base_path).resolve(strict=True)
+    except FileNotFoundError:
+        # Invalid base path cannot contain anything
+        return False
+
+    # Resolve target path without strict to allow checking paths that may not yet exist
+    target = Path(path).resolve(strict=False)
+
+    # On Windows, perform a case-insensitive comparison using commonpath.
+    if os.name == 'nt':
+        base_str = os.path.normcase(str(base))
+        target_str = os.path.normcase(str(target))
+        try:
+            return os.path.commonpath([base_str, target_str]) == base_str
+        except ValueError:
+            # Different drives or invalid path relationships
+            return False
+
+    # On POSIX, we can rely on is_relative_to for clarity
+    try:
+        return target.is_relative_to(base)
+    except AttributeError:
+        # Fallback for very old Python versions: use commonpath
+        try:
+            return os.path.commonpath([str(base), str(target)]) == str(base)
+        except ValueError:
+            return False
     
