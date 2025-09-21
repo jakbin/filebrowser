@@ -759,32 +759,12 @@ table tr > :last-child {
     color: #fff;
 }
 @-webkit-keyframes show {
-    0% {
-        display: none;
-        opacity: 0;
-    }
-    1% {
-        display: block;
-        opacity: 0;
-    }
-    to {
-        display: block;
-        opacity: 1;
-    }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 @keyframes show {
-    0% {
-        display: none;
-        opacity: 0;
-    }
-    1% {
-        display: block;
-        opacity: 0;
-    }
-    to {
-        display: block;
-        opacity: 1;
-    }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 .card .card-action.full {
     padding-top: 0;
